@@ -42,7 +42,6 @@ def test_add_patient():
                 "rweeawdas": "pokomjoij"}
 
     for name, surname in param_grid.items():
-        response = client.post("/patient", params={name: surname})
+        response = client.post("/patient", params={"name": name, "surename": surname})
         assert response.status_code == 200
-        assert response.json()["patient"] == {"name":name, "surename":surname}
-
+        assert response.json()["patient"] == {"name": name, "surename": surname}

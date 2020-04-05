@@ -22,14 +22,15 @@ def get_method():
     return {"method": "GET"}
 
 
-@app.put("/method/")
-def put_method():
-    return {"method": "PUT"}
-
 
 @app.post("/method/")
 def post_method():
     return {"method": "POST"}
+
+
+@app.put("/method/")
+def put_method():
+    return {"method": "PUT"}
 
 
 @app.delete("/method/")
@@ -43,20 +44,18 @@ def counter_inc():
 
 
 class AddPatient(BaseModel):
-    name: str
-    surename: str
+    patient_info: Dict
 
 
-"""class ReturnPatient(BaseModel):
+class ReturnPatient(BaseModel):
     id: int = app.counter
-    patient_data = Dict"""
+    patient_data: Dict
 
 
 @app.post("/patient/")
-def add_patient(patient_info: AddPatient):
+def add_patient(patient_info=AddPatient):
     patient_id = app.counter
-    app.patients_dic[patient_id] = patient_info.dict()
+    app.patients_dic[patient_id] = patient_info
     counter_inc()
-    return {"id": patient_id, "patient": patient_info.dict()}
 
-
+    return ReturnPatient(id=app.counter, patient_data=patient_info)
