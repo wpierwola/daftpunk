@@ -49,7 +49,7 @@ class AddPatient(BaseModel):
 
 class ReturnPatient(BaseModel):
     id: int
-    patient_data: AddPatient
+    patient: AddPatient
 
 
 @app.post("/patient/", response_model=ReturnPatient)
@@ -58,7 +58,7 @@ def add_patient(patient_info: AddPatient):
     app.patients_dic[patient_id] = patient_info
     counter_inc()
 
-    return ReturnPatient(id=app.count, patient_data=patient_info)
+    return ReturnPatient(id=app.count, patient=patient_info)
 
 
 
