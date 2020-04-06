@@ -7,11 +7,6 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-
-app.counter = 0
-app.patients_dic = {}
-
-
 @app.get("/")
 def root():
     return {"message": "Hello World during the coronavirus pandemic!"}
@@ -38,9 +33,13 @@ def delete_method():
     return {"method": "DELETE"}
 
 
+app.count = 0
+app.patients_dic = {}
+
+
 def counter_inc():
-    app.counter += 1
-    return app.counter
+    app.count += 1
+    return app.count
 
 
 class AddPatient(BaseModel):
@@ -53,11 +52,13 @@ class ReturnPatient(BaseModel):
     patient_data: AddPatient
 
 
-@app.post("/patient/", response_model = ReturnPatient)
-def add_patient(patient_info=AddPatient):
-    patient_id = app.counter
+@app.post("/patient/", response_model=ReturnPatient)
+def add_patient(patient_info: AddPatient):
+    patient_id = app.count
     app.patients_dic[patient_id] = patient_info
     counter_inc()
 
-    return ReturnPatient(id=app.counter, patient_data=patient_info)
+    return ReturnPatient(id=app.count, patient_data=patient_info)
+
+
 

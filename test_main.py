@@ -37,8 +37,6 @@ def test_delete_method():
 
 
 def test_add_patient():
-    response = client.post(url="/patient/", headers={"a":"b"}, json={"name": "sad", "surename": "safda"})
+    response = client.post(url="/patient/", json={"name": "sad", "surename": "sada"})
     assert response.status_code == 200
-    assert response.json()["patient"] == {"name": "sdas", "surename": "asdd"}
-
-
+    assert  {"name": "sad", "surename": "sada"} in response.json().values()
