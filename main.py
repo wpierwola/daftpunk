@@ -1,6 +1,6 @@
 from typing import Dict
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from pydantic import BaseModel
 
@@ -65,4 +65,4 @@ def pk_patient(pk: int):
     if str(pk) in app.patients_dic.keys():
         return app.patients_dic[str(pk)]
     else:
-        return {"message": "Patient does not exist"}
+        raise HTTPException(status_code=204, detail="no_content")
