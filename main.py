@@ -44,18 +44,20 @@ def counter_inc():
 
 
 class AddPatient(BaseModel):
-    patient_info: Dict
+    name: str
+    surename: str
 
 
 class ReturnPatient(BaseModel):
-    id: int = app.counter
-    patient_data: Dict
+    id: int
+    patient_data: AddPatient
 
 
-@app.post("/patient/")
+@app.post("/patient/", response_model = ReturnPatient)
 def add_patient(patient_info=AddPatient):
     patient_id = app.counter
     app.patients_dic[patient_id] = patient_info
     counter_inc()
 
     return ReturnPatient(id=app.counter, patient_data=patient_info)
+

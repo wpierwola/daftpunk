@@ -37,11 +37,8 @@ def test_delete_method():
 
 
 def test_add_patient():
-    param_grid = {"Anna": "Kowalska",
-                "asdmad": "oijppom",
-                "rweeawdas": "pokomjoij"}
+    response = client.post(url="/patient/", headers={"a":"b"}, json={"name": "sad", "surename": "safda"})
+    assert response.status_code == 200
+    assert response.json()["patient"] == {"name": "sdas", "surename": "asdd"}
 
-    for name, surname in param_grid.items():
-        response = client.post("/patient", params={"name": name, "surename": surname})
-        assert response.status_code == 200
-        assert response.json()["patient"] == {"name": name, "surename": surname}
+
