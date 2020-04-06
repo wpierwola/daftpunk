@@ -40,3 +40,9 @@ def test_add_patient():
     response = client.post(url="/patient/", json={"name": "sad", "surename": "sada"})
     assert response.status_code == 200
     assert  {"name": "sad", "surename": "sada"} in response.json().values()
+
+
+def test_pk_patient():
+    response = client.get("/patient/1")
+    assert response.status_code == 200
+

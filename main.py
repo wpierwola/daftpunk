@@ -4,8 +4,8 @@ from fastapi import FastAPI
 
 from pydantic import BaseModel
 
-
 app = FastAPI()
+
 
 @app.get("/")
 def root():
@@ -15,7 +15,6 @@ def root():
 @app.get("/method/")
 def get_method():
     return {"method": "GET"}
-
 
 
 @app.post("/method/")
@@ -61,5 +60,9 @@ def add_patient(patient_info: AddPatient):
     return ReturnPatient(id=app.count, patient=patient_info)
 
 
-
-50 in range(13,50)
+@app.get("/patient/{pk}/", response_model=AddPatient)
+def pk_patient(pk: int):
+    if str(pk) in app.patients_dic.keys():
+        return app.patients_dic[str(pk)]
+    else:
+        return {"message": "Patient does not exist"}
