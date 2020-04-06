@@ -48,13 +48,13 @@ class AddPatient(BaseModel):
 
 
 class ReturnPatient(BaseModel):
-    id: int
+    id: str
     patient: AddPatient
 
 
 @app.post("/patient/", response_model=ReturnPatient)
 def add_patient(patient_info: AddPatient):
-    patient_id = app.count
+    patient_id = str(app.count)
     app.patients_dic[patient_id] = patient_info
     counter_inc()
 
@@ -62,3 +62,4 @@ def add_patient(patient_info: AddPatient):
 
 
 
+50 in range(13,50)
