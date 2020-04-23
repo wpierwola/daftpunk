@@ -1,4 +1,3 @@
-from typing import Dict
 
 from fastapi import FastAPI, HTTPException
 
@@ -9,13 +8,16 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "Hello World during the coronavirus pandemic!"}
+    return {"message": "Another Hello World"}
 
 
 @app.get("/method/")
 def get_method():
     return {"method": "GET"}
 
+@app.get("/welcome/")
+def get_welcome():
+    return {"message: Yet another welcome message"}
 
 @app.post("/method/")
 def post_method():
@@ -66,3 +68,5 @@ def pk_patient(pk: int):
         return app.patients_dic[str(pk)]
     else:
         raise HTTPException(status_code=204, detail="no_content")
+
+
