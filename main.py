@@ -1,9 +1,16 @@
+import secrets
 
-from fastapi import FastAPI, HTTPException
+from hashlib import sha256
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from pydantic import BaseModel
+from typing import Dict
 
 app = FastAPI()
+app.secret_key = "wjoirnfgojajw3ur902i4qoifjsoq0291i49823hwefjqh204u3y523aknsdajkbsdojwuirfhuihnfbasjnfbsfihfbrhqwihsdjvbgeh0912u43289hfkjnwo203urhsijfe90ry2gh9shfusd"
+security = HTTPBasic()
 
 
 @app.get("/")
@@ -15,9 +22,11 @@ def root():
 def get_method():
     return {"method": "GET"}
 
+
 @app.get("/welcome/")
 def get_welcome():
     return {"message: Yet another welcome message"}
+
 
 @app.post("/method/")
 def post_method():
@@ -68,5 +77,24 @@ def pk_patient(pk: int):
         return app.patients_dic[str(pk)]
     else:
         raise HTTPException(status_code=204, detail="no_content")
+
+@app.get("login")
+#@app.post("/login/")
+def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, "trudnY")
+    correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
+    if not correct_username and correct_password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}")).hexdigest()
+    response = RedirectResponse(url="/welcome/")
+    response.set_cookie(key="session_token", value=session_token)
+    return response
+
+
+
 
 
