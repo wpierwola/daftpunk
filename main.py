@@ -78,7 +78,7 @@ def pk_patient(pk: int):
     else:
         raise HTTPException(status_code=204, detail="no_content")
 
-@app.get("login")
+@app.get("/login")
 #@app.post("/login/")
 def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "trudnY")
