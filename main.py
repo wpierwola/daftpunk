@@ -118,11 +118,12 @@ def add_patient(patient_info: AddPatient):
     app.patients_dic[patient_id] = patient_info
     counter_inc()
     response = RedirectResponse(url="/patient/{patient_id}")
+    response.status_code = status.HTTP_302_FOUND
     return response
 
 
 @app.get("/patient/{patient_id}/", response_model=AddPatient, dependencies=[Depends(check_session)])
-def pk_patient(patient_id: int):
+def pk_patient(patient_id: str):
     if str(patient_id) in app.patients_dic.keys():
         return app.patients_dic[str(patient_id)]
     else:
@@ -130,13 +131,17 @@ def pk_patient(patient_id: int):
 
 
 @app.get("/patient", dependencies=[Depends(check_session)])
-def get_all_patients():
+def get_all_patients(response: Response):
     if len(app.patients_dic) > 0:
+        response.status_code = status.HTTP_302_FOUND
         return app.patients_dic
 
+
+
 @app.delete("/patient/{patient_id}", dependencies=[Depends(check_session)])
-def delete_patient(patient_id: str):
+def delete_patient(patient_id: str, response: Response):
     if patient_id not in app.patients_dic.keys():
         raise HTTPException(status_code=204, detail="no_content")
     app.patients_dic.pop(patient_id)
+    response.status_code = status.HTTP_200_OK
 
