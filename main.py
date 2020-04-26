@@ -4,6 +4,7 @@ from hashlib import sha256
 from fastapi import Cookie, Depends, FastAPI, HTTPException, status, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.templating import Jinja2Templates
 
 from pydantic import BaseModel
 from typing import Dict
@@ -12,6 +13,7 @@ app = FastAPI()
 app.secret_key = "wjoirnfgojajw3ur902i4qoifjsoq0291i49823hwefjqh204u3y523aknsdajkbsdojwui"
 security = HTTPBasic()
 app.sessions = {}
+templates = Jinja2Templates(directory="templates")
 
 
 def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
@@ -29,7 +31,7 @@ def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
     return session_token
 
 
-# @app.get("/login")
+@app.get("/login")
 @app.post("/login")
 def login(session_token: str = Depends(auth_login)):
     if session_token in app.sessions:
@@ -67,14 +69,15 @@ def root():
     return {"message": "Another Hello World"}
 
 
+@app.get("/welcome", dependencies=[Depends(check_session)])
+def get_welcome(request: Request, session_token: str = Depends(check_session)):
+    username = app.sessions[session_token]
+    return templates.TemplateResponse("welcome.html", {"request": request, "user": username})
+
+
 @app.get("/method/")
 def get_method():
     return {"method": "GET"}
-
-
-@app.get("/welcome", dependencies=[Depends(check_session)])
-def get_welcome():
-    return {"message: Yet another welcome message"}
 
 
 @app.post("/method/")
