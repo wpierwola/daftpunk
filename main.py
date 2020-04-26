@@ -7,8 +7,6 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 
 from pydantic import BaseModel
-from typing import Dict
-
 app = FastAPI()
 app.secret_key = "wjoirnfgojajw3ur902i4qoifjsoq0291i49823hwefjqh204u3y523aknsdajkbsdojwui"
 security = HTTPBasic()
@@ -95,7 +93,7 @@ def delete_method():
     return {"method": "DELETE"}
 
 
-app.count = 0
+app.count = 1
 app.patients_dic = {}
 
 
@@ -114,18 +112,31 @@ class ReturnPatient(BaseModel):
     patient: AddPatient
 
 
-@app.post("/patient/", response_model=ReturnPatient, dependencies=[Depends(check_session)])
+@app.post("/patient", dependencies=[Depends(check_session)])
 def add_patient(patient_info: AddPatient):
     patient_id = str(app.count)
     app.patients_dic[patient_id] = patient_info
     counter_inc()
+    response = RedirectResponse(url="/patient/{patient_id}")
+    return response
 
-    return ReturnPatient(id=app.count, patient=patient_info)
 
-
-@app.get("/patient/{pk}/", response_model=AddPatient, dependencies=[Depends(check_session)])
-def pk_patient(pk: int):
-    if str(pk) in app.patients_dic.keys():
-        return app.patients_dic[str(pk)]
+@app.get("/patient/{patient_id}/", response_model=AddPatient, dependencies=[Depends(check_session)])
+def pk_patient(patient_id: int):
+    if str(patient_id) in app.patients_dic.keys():
+        return app.patients_dic[str(patient_id)]
     else:
         raise HTTPException(status_code=204, detail="no_content")
+
+
+@app.get("/patient", dependencies=[Depends(check_session)])
+def get_all_patients():
+    if len(app.patients_dic) > 0:
+        return app.patients_dic
+
+@app.delete("/patient/{patient_id}", dependencies=[Depends(check_session)])
+def delete_patient(patient_id: str):
+    if patient_id not in app.patients_dic.keys():
+        raise HTTPException(status_code=204, detail="no_content")
+    app.patients_dic.pop(patient_id)
+
