@@ -23,7 +23,7 @@ def get_method():
     return {"method": "GET"}
 
 
-@app.get("/hello/")
+@app.get("/welcome")
 def get_welcome():
     return {"message: Yet another welcome message"}
 
@@ -90,6 +90,7 @@ def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Basic"},
         )
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding = "utf8")).hexdigest()
-    response = RedirectResponse(url="/hello/")
+    response = RedirectResponse(url="/welcome")
+    response.headers["Location"]= "/welcome"
     response.set_cookie(key="session_token", value=session_token)
-    return response
+
