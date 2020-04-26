@@ -123,8 +123,9 @@ def add_patient(patient_info: AddPatient):
 
 
 @app.get("/patient/{patient_id}/", response_model=AddPatient, dependencies=[Depends(check_session)])
-def pk_patient(patient_id: str):
+def pk_patient(response: Response, patient_id: str):
     if str(patient_id) in app.patients_dic.keys():
+        response.status_code = status.HTTP_302_FOUND
         return app.patients_dic[str(patient_id)]
     else:
         raise HTTPException(status_code=204, detail="no_content")
@@ -135,7 +136,8 @@ def get_all_patients(response: Response):
     if len(app.patients_dic) > 0:
         response.status_code = status.HTTP_302_FOUND
         return app.patients_dic
-
+    else:
+        raise HTTPException(status_code=204, detail="no_content")
 
 
 @app.delete("/patient/{patient_id}", dependencies=[Depends(check_session)])
