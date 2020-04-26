@@ -80,6 +80,8 @@ def pk_patient(pk: int):
         raise HTTPException(status_code=204, detail="no_content")
 
 
+@app.get("/login")
+@app.post("/login")
 def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "trudnY")
     correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
@@ -91,14 +93,15 @@ def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
         )
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding = "utf8")).hexdigest()
     app.sessions[session_token] = credentials.username
-    return session_token
-
-
-@app.get("/login/")
-@app.post("/login/")
-def login(response: Response, session_token: str = Depends(auth_login)):
-    response.status_code = status.HTTP_302_FOUND
-    response.headers["Location"] = "/welcome"
+    response = RedirectResponse(url="/welcome")
+    response.headers["location"] = "/welcome"
     response.set_cookie(key="session_token", value=session_token)
+    return response
 
 
+
+
+"""def check_session(session_token: str):
+    if session_token not in app.sessions:
+        session_token = None
+    return session_token"""
