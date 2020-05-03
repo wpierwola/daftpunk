@@ -1,3 +1,4 @@
+import aiosqlite
 import secrets
 
 from hashlib import sha256
@@ -7,11 +8,21 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 
 from pydantic import BaseModel
+from routers import base_router
+
 app = FastAPI()
 app.secret_key = "wjoirnfgojajw3ur902i4qoifjsoq0291i49823hwefjqh204u3y523aknsdajkbsdojwui"
 security = HTTPBasic()
 app.sessions = {}
 templates = Jinja2Templates(directory="templates")
+app.include_router(base_router.router)
+
+
+
+
+
+
+
 
 
 def auth_login(credentials: HTTPBasicCredentials = Depends(security)):
