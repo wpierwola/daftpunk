@@ -43,7 +43,7 @@ async def get_tracks(response:Response, composer_name: str):
 
 @router.post("/albums")
 async def add_album(response: Response, artist_id: int, title: str):
-    router.db_connection.row_factory = aiosqlite.Row
+    router.db_connection.row_factory = None
     cursor = await router.db_connection.execute("SELECT artist_id FROM albums "
                                                 " Where artist_id = ?"
                                                 " ORDER BY Name", (artist_id,))
@@ -68,3 +68,25 @@ async def get_album(response: Response, album_id: int):
     if row:
         response.status_code = status.HTTP_200_OK
         return row
+
+
+"""    class Album(BaseModel):
+        title: str
+        artist_id: int
+
+
+    @router.post("/albums")
+    async def add_album(response: Response, album: Album):
+        router.db_connection.row_factory = None
+        cursor = await router.db_connection.execute("SELECT ArtistId FROM artists WHERE ArtistId = ?",
+            (album.artist_id, ))
+        result = await cursor.fetchone()
+        if result is None:
+            response.status_code = status.HTTP_404_NOT_FOUND
+            return {"detail":{"error":"Artist with that ID does not exist."}}
+        cursor = await router.db_connection.execute("INSERT INTO albums (Title, ArtistId) VALUES (?, ?)",
+            (album.title, album.artist_id))
+        await router.db_connection.commit()
+        response.status_code = status.HTTP_201_CREATED
+        return {"AlbumId": cursor.lastrowid, "Title": album.title, "ArtistId": album.artist_id}
+"""
