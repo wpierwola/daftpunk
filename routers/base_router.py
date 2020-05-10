@@ -40,8 +40,8 @@ async def get_tracks(response: Response, composer_name: str):
     return data
 
 
-@router.post("/albums", status_code=201)
-async def add_album(artist_id: int, title: str):
+@router.post("/albums")
+async def add_album(response: Response, artist_id: int, title: str):
     router.db_connection.row_factory = aiosqlite.Row
     cursor = await router.db_connection.execute("SELECT ArtistId FROM albums "
                                                 " Where ArtistId = ?"
@@ -54,7 +54,8 @@ async def add_album(artist_id: int, title: str):
                                                     "(Title, ArtistId) VALUES (?, ?)", (title, artist_id))
         await router.db_connection.commit()
         new_album_row = await router.db_connection.execute("SELECT * FROM albums WHERE AlbumID = ?", (cursor.lastrowid,))
-        album =  await new_album_row.fetchone()
+        album = await new_album_row.fetchone()
+        response.status_code = status.HTTP_201_CREATED
         return album
 
 
