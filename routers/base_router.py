@@ -21,29 +21,29 @@ async def get_tracks(response: Response, page: int = 0, per_page: int = 10):
     router.db_connection.row_factory = aiosqlite.Row
     cursor = await router.db_connection.execute("SELECT * FROM tracks "
                                                 "ORDER BY TrackId"
-                                                " LIMIT ? OFFSET ? ", (per_page, page*per_page))
+                                                " LIMIT ? OFFSET ? ", (per_page, page * per_page))
     data = await cursor.fetchall()
     response.status_code = status.HTTP_200_OK
     return data
 
 
 @router.get("/tracks/composers")
-async def get_tracks(response:Response, composer_name: str):
+async def get_tracks(response: Response, composer_name: str):
     router.db_connection.row_factory = lambda cursor, x: x[0]
     cursor = await router.db_connection.execute("SELECT Name FROM tracks "
                                                 " Where Composer = ?"
                                                 " ORDER BY Name", (composer_name,))
     data = await cursor.fetchall()
-    if len(data) ==0:
+    if len(data) == 0:
         response.status_code = status.HTTP_404_NOT_FOUND
         return {"detail": {"error": "Cannot find tracks by that composer"}}
     response.status_code = status.HTTP_200_OK
     return data
 
 
-"""@router.post("/albums")
+@router.post("/albums")
 async def add_album(response: Response, artist_id: int, title: str):
-    router.db_connection.row_factory = None
+    router.db_connection.row_factory = aiosqlite.Row
     cursor = await router.db_connection.execute("SELECT artist_id FROM albums "
                                                 " Where artist_id = ?"
                                                 " ORDER BY Name", (artist_id,))
@@ -67,35 +67,43 @@ async def get_album(response: Response, album_id: int):
     row = await cursor.fetchone()
     if row:
         response.status_code = status.HTTP_200_OK
-        return row"""
+        return row
 
 
-    class Album(BaseModel):
-        title: str
-        artist_id: int
+class Customer(BaseModel):
+    company: str = None
+    address: str = None
+    city: str = None
+    state: str = None
+    country: str = None
+    postalcode: str = None
+    fax: str = None
 
-    @router.post("/albums")
-    async def add_album(response: Response, album: Album):
-        router.db_connection.row_factory = None
-        cursor = await router.db_connection.execute("SELECT ArtistId FROM artists WHERE ArtistId = ?",
-            (album.artist_id, ))
-        result = await cursor.fetchone()
-        if result is None:
-            response.status_code = status.HTTP_404_NOT_FOUND
-            return {"detail":{"error":"Artist with that ID does not exist."}}
-        cursor = await router.db_connection.execute("INSERT INTO albums (Title, ArtistId) VALUES (?, ?)",
-            (album.title, album.artist_id))
+
+@router.put("/customers/{customer_id}")
+async def tracks_composers(response: Response, customer_id: int, customer: Customer):
+    cursor = await router.db_connection.execute("SELECT CustomerId FROM customers WHERE CustomerId = ?",
+                                                (customer_id,))
+    result = await cursor.fetchone()
+    if result is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"detail": {"error": "Customer with that ID does not exist."}}
+    update_customer = customer.dict(exclude_unset=True)
+    values = list(update_customer.values())
+    if len(values) != 0:
+        values.append(customer_id)
+        query = "UPDATE customers SET "
+        for key, value in update_customer.items():
+            key.capitalize()
+            if key == "Postalcode":
+                key = "PostalCode"
+            query += f"{key}=?, "
+        query = query[:-2]
+        query += " WHERE CustomerId = ?"
+        cursor = await router.db_connection.execute(query, tuple(values))
         await router.db_connection.commit()
-        response.status_code = status.HTTP_201_CREATED
-        return {"AlbumId": cursor.lastrowid, "Title": album.title, "ArtistId": album.artist_id}
-
-    @router.get("/albums/{album_id}")
-    async def tracks_composers(response: Response, album_id: int):
-        router.db_connection.row_factory = aiosqlite.Row
-        cursor = await router.db_connection.execute("SELECT * FROM albums WHERE AlbumId = ?",
-            (album_id, ))
-        album = await cursor.fetchone()
-        if album is None:
-            response.status_code = status.HTTP_404_NOT_FOUND
-            return {"detail":{"error":"Album with that ID does not exist."}}
-        return album
+    router.db_connection.row_factory = aiosqlite.Row
+    cursor = await router.db_connection.execute("SELECT * FROM customers WHERE CustomerId = ?",
+                                                (customer_id,))
+    customer = await cursor.fetchone()
+    return customer
