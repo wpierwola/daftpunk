@@ -65,7 +65,7 @@ async def add_album(album: Album):
 @router.get('/albums/{album_id}', status_code=200)
 async def get_album(album_id: int):
     router.db_connection.row_factory = aiosqlite.Row
-    album = await router.db_connection.execute("SELECT * FROM albums "
-                                                "Where AlbumId = ?", (album_id,)).fetchone()
+    cursor = await router.db_connection.execute("SELECT * FROM albums WHERE AlbumId = ?", (album_id,))
+    album = await cursor.fetchone()
     return album
 
