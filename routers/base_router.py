@@ -41,7 +41,7 @@ async def get_tracks(response:Response, composer_name: str):
     return data
 
 
-@router.post("/albums")
+"""@router.post("/albums")
 async def add_album(response: Response, artist_id: int, title: str):
     router.db_connection.row_factory = None
     cursor = await router.db_connection.execute("SELECT artist_id FROM albums "
@@ -56,7 +56,7 @@ async def add_album(response: Response, artist_id: int, title: str):
                                                     "(Title, ArtistId) VALUES (?, ?)", (title, artist_id))
         await router.db_connection.commit()
         response.status_code = status.HTTP_201_CREATED
-        return {"AlbumId": cursor.lastrowid, "Title": title, "ArtistId": artist_id}
+        return {"AlbumId": cursor.lastrowid, "Title": title, "ArtistId": artist_id}"""
 
 
 @router.get('/albums/{album_id}')
@@ -70,7 +70,7 @@ async def get_album(response: Response, album_id: int):
         return row
 
 
-"""    class Album(BaseModel):
+    class Album(BaseModel):
         title: str
         artist_id: int
 
@@ -89,4 +89,4 @@ async def get_album(response: Response, album_id: int):
         await router.db_connection.commit()
         response.status_code = status.HTTP_201_CREATED
         return {"AlbumId": cursor.lastrowid, "Title": album.title, "ArtistId": album.artist_id}
-"""
+
