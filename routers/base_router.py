@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Response, status
+from pydantic import BaseModel
 
 import aiosqlite
 
@@ -38,3 +39,43 @@ async def get_tracks(response:Response, composer_name: str):
         return {"detail": {"error": "Cannot find tracks by that composer"}}
     response.status_code = status.HTTP_200_OK
     return data
+
+
+class PostAlbum(BaseModel):
+    Title: str
+    ArtistID: int
+
+
+class ReturnAlbum(BaseModel):
+    AlbumId: int
+    Title: str
+    ArtistId: int
+
+
+@router.post("/album", response_model=ReturnAlbum)
+async def add_album(response: Response, album:PostAlbum):
+    router.db_connection.row_factory = aiosqlite.Row
+    cursor = await router.db_connection.execute("SELECT TOP 1 artist_id FROM albums "
+                                                " Where artist_id = ?"
+                                                " ORDER BY Name", (album.artist_id,))
+    row = await cursor.fetchone()
+    if not row:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"detail": {"error": "Artist ID not found"}}
+    else:
+        cursor = await router.db_connection.execute("INSERT INTO albums "
+                                                    "(Title, ArtistId) VALUES (?, ?)", (album.title, album.artist_id))
+        await router.db_connection.commit()
+        response.status_code = status.HTTP_201_CREATED
+        return ReturnAlbum(cursor.lastrowid, album.title, album.artist_id)
+
+
+@router.get('/albums/{album_id}')
+async def get_album(response: Response, album_id: int):
+    router.db_connection.row_factory = aiosqlite.Row
+    cursor = await router.db_connection.execute("SELECT * FROM albums "
+                                                " Where AlbumId = ?", (album_id,))
+    row = await cursor.fetchone()
+    if row:
+        response.status_code = status.HTTP_200_OK
+        return row
