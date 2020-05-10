@@ -28,7 +28,7 @@ async def get_tracks(response: Response, page: int = 0, per_page: int = 10):
 
 @router.get("/tracks/composers")
 async def get_tracks(response:Response, composer_name: str):
-    router.db_connection.row_factory = aiosqlite.Row
+    router.db_connection.row_factory = lambda cursor, x: x[0]
     cursor = await router.db_connection.execute("SELECT Name FROM tracks "
                                                 " Where Composer = ?"
                                                 " ORDER BY Name", (composer_name,))
