@@ -46,7 +46,7 @@ class PostAlbum(BaseModel):
     ArtistID: int
 
 
-@router.post("/album")
+@router.post("/albums")
 async def add_album(response: Response, album:PostAlbum):
     router.db_connection.row_factory = aiosqlite.Row
     cursor = await router.db_connection.execute("SELECT TOP 1 artist_id FROM albums "
