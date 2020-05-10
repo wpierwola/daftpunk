@@ -41,27 +41,22 @@ async def get_tracks(response:Response, composer_name: str):
     return data
 
 
-class PostAlbum(BaseModel):
-    Title: str
-    ArtistID: int
-
-
 @router.post("/albums")
-async def add_album(response: Response, album:PostAlbum):
+async def add_album(response: Response, artist_id: int, title: str):
     router.db_connection.row_factory = aiosqlite.Row
-    cursor = await router.db_connection.execute("SELECT TOP 1 artist_id FROM albums "
+    cursor = await router.db_connection.execute("SELECT artist_id FROM albums "
                                                 " Where artist_id = ?"
-                                                " ORDER BY Name", (album.artist_id,))
+                                                " ORDER BY Name", (artist_id,))
     row = await cursor.fetchone()
-    if not row:
+    if row is None:
         response.status_code = status.HTTP_404_NOT_FOUND
         return {"detail": {"error": "Artist ID not found"}}
     else:
         cursor = await router.db_connection.execute("INSERT INTO albums "
-                                                    "(Title, ArtistId) VALUES (?, ?)", (album.title, album.artist_id))
+                                                    "(Title, ArtistId) VALUES (?, ?)", (title, artist_id))
         await router.db_connection.commit()
         response.status_code = status.HTTP_201_CREATED
-        return {"AlbumId": cursor.lastrowid, "Title": album.title, "ArtistId": album.artist_id}
+        return {"AlbumId": cursor.lastrowid, "Title": title, "ArtistId": artist_id}
 
 
 @router.get('/albums/{album_id}')
