@@ -40,26 +40,22 @@ async def get_tracks(response: Response, composer_name: str):
     return data
 
 
-class Album(BaseModel):
-    title: str
-    artist_id: int
-
-
 @router.post("/albums", status_code=201)
-async def add_album(album: Album):
-    cursor = await router.db_connection.execute("SELECT artist_id FROM albums "
-                                                " Where artist_id = ?"
-                                                " ORDER BY Name", (album.artist_id,))
+async def add_album(artist_id: int, title: str):
+    router.db_connection.row_factory = aiosqlite.Row
+    cursor = await router.db_connection.execute("SELECT ArtistId FROM albums "
+                                                " Where ArtistId = ?"
+                                                " ORDER BY Title", (artist_id,))
     row = await cursor.fetchone()
     if row is None:
         raise HTTPException(status_code=404, detail= {"error": "Artist ID not found"})
     else:
-        router.db_connection.row_factory = aiosqlite.Row
         cursor = await router.db_connection.execute("INSERT INTO albums "
-                                                    "(Title, ArtistId) VALUES (?, ?)", (album.title, album.artist_id))
+                                                    "(Title, ArtistId) VALUES (?, ?)", (title, artist_id))
         await router.db_connection.commit()
-        new_album_row = router.db_connection.execute("SELECT * FROM albums WHERE AlbumID = ?", (cursor.lastrowid,)).fetchone()
-        return new_album_row
+        new_album_row = await router.db_connection.execute("SELECT * FROM albums WHERE AlbumID = ?", (cursor.lastrowid,))
+        album =  await new_album_row.fetchone()
+        return album
 
 
 @router.get('/albums/{album_id}', status_code=200)
