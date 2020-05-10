@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, HTTPException ,Response, status
 from pydantic import BaseModel
-
 import aiosqlite
 
 router = APIRouter()
@@ -41,69 +40,32 @@ async def get_tracks(response: Response, composer_name: str):
     return data
 
 
-@router.post("/albums")
-async def add_album(response: Response, artist_id: int, title: str):
-    router.db_connection.row_factory = aiosqlite.Row
+class Album(BaseModel):
+    title: str
+    artist_id: int
+
+
+@router.post("/albums", status_code=201)
+async def add_album(album: Album):
     cursor = await router.db_connection.execute("SELECT artist_id FROM albums "
                                                 " Where artist_id = ?"
-                                                " ORDER BY Name", (artist_id,))
+                                                " ORDER BY Name", (album.artist_id,))
     row = await cursor.fetchone()
     if row is None:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return {"detail": {"error": "Artist ID not found"}}
+        raise HTTPException(status_code=404, detail= {"error": "Artist ID not found"})
     else:
+        router.db_connection.row_factory = aiosqlite.Row
         cursor = await router.db_connection.execute("INSERT INTO albums "
-                                                    "(Title, ArtistId) VALUES (?, ?)", (title, artist_id))
+                                                    "(Title, ArtistId) VALUES (?, ?)", (album.title, album.artist_id))
         await router.db_connection.commit()
-        response.status_code = status.HTTP_201_CREATED
-        return {"AlbumId": cursor.lastrowid, "Title": title, "ArtistId": artist_id}
+        new_album_row = router.db_connection.execute("SELECT * FROM albums WHERE AlbumID = ?", (cursor.lastrowid,)).fetchone()
+        return new_album_row
 
 
-@router.get('/albums/{album_id}')
-async def get_album(response: Response, album_id: int):
+@router.get('/albums/{album_id}', status_code=200)
+async def get_album(album_id: int):
     router.db_connection.row_factory = aiosqlite.Row
-    cursor = await router.db_connection.execute("SELECT * FROM albums "
-                                                " Where AlbumId = ?", (album_id,))
-    row = await cursor.fetchone()
-    if row:
-        response.status_code = status.HTTP_200_OK
-        return row
+    album = await router.db_connection.execute("SELECT * FROM albums "
+                                                "Where AlbumId = ?", (album_id,)).fetchone()
+    return album
 
-
-class Customer(BaseModel):
-    company: str = None
-    address: str = None
-    city: str = None
-    state: str = None
-    country: str = None
-    postalcode: str = None
-    fax: str = None
-
-
-@router.put("/customers/{customer_id}")
-async def tracks_composers(response: Response, customer_id: int, customer: Customer):
-    cursor = await router.db_connection.execute("SELECT CustomerId FROM customers WHERE CustomerId = ?",
-                                                (customer_id,))
-    result = await cursor.fetchone()
-    if result is None:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return {"detail": {"error": "Customer with that ID does not exist."}}
-    update_customer = customer.dict(exclude_unset=True)
-    values = list(update_customer.values())
-    if len(values) != 0:
-        values.append(customer_id)
-        query = "UPDATE customers SET "
-        for key, value in update_customer.items():
-            key.capitalize()
-            if key == "Postalcode":
-                key = "PostalCode"
-            query += f"{key}=?, "
-        query = query[:-2]
-        query += " WHERE CustomerId = ?"
-        cursor = await router.db_connection.execute(query, tuple(values))
-        await router.db_connection.commit()
-    router.db_connection.row_factory = aiosqlite.Row
-    cursor = await router.db_connection.execute("SELECT * FROM customers WHERE CustomerId = ?",
-                                                (customer_id,))
-    customer = await cursor.fetchone()
-    return customer
