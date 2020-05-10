@@ -46,13 +46,7 @@ class PostAlbum(BaseModel):
     ArtistID: int
 
 
-class ReturnAlbum(BaseModel):
-    AlbumId: int
-    Title: str
-    ArtistId: int
-
-
-@router.post("/album", response_model=ReturnAlbum)
+@router.post("/album")
 async def add_album(response: Response, album:PostAlbum):
     router.db_connection.row_factory = aiosqlite.Row
     cursor = await router.db_connection.execute("SELECT TOP 1 artist_id FROM albums "
@@ -67,7 +61,7 @@ async def add_album(response: Response, album:PostAlbum):
                                                     "(Title, ArtistId) VALUES (?, ?)", (album.title, album.artist_id))
         await router.db_connection.commit()
         response.status_code = status.HTTP_201_CREATED
-        return ReturnAlbum(cursor.lastrowid, album.title, album.artist_id)
+        return {"AlbumId": cursor.lastrowid, "Title": album.title, "ArtistId": album.artist_id}
 
 
 @router.get('/albums/{album_id}')
